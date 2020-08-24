@@ -30,10 +30,9 @@ def Extract(eq, quan_map, mode):
         eq = re.sub(r'\.0+(?!\d)', '', eq)
         for quan, num in quan_map.items():
             eq = re.sub(rf'(?<![\d\.N]){num}(?![\d\.])', quan, eq)
-        
-        # subtitution
+
+        # substitution
         eq = re.sub('%', '*0.01', eq)
-        # print(eq)
         return eq.split('\n')
 
 def genMap(numbers):
@@ -53,19 +52,20 @@ def Normalize(question, mode):
         question = re.sub(r'(?<=\d),(?=\d)', '', question)
         question = re.sub(r'(?<=\.\d)0+', '', question)
 
-        # generate the maop between quantities and numnber
-        for number in re.findall(r'(\d+(\,\d+)?(\.\d+)?)', question):
+        # generate the map between quantities and numnber
+        # print(question)
+        for number in  re.findall(r'((\d+(\,\d+)?(\.\d+)?)|\(\d+\/\d+\))', question):
             if number[0] not in numbers:
                 tmp = str(number[0])
                 tmp = re.sub(r'\.0$', '', tmp)
                 tmp = re.sub(',', '', tmp)
                 numbers.append(tmp)
         quan_map =  genMap(numbers)
-        # print(quan_map)
 
         # substitute the question sentence
         for quan, num in quan_map.items():
             question = re.sub(rf'(?<![\d\.N]){num}(?!(\d|\.\d+))', quan, question)
+        # print(question)
         return question, quan_map
 
 
@@ -98,26 +98,38 @@ def load_raw_data(filename):  # load the json data to list(dict()) for MATH 23K
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
-        print('Missing Saving Dir(1), Mode(2) [unknown, variables]')
+        print('Missing Saving Dir(1), Mode(2) [word, character], ')
         exit(-1)
     Dir = sys.argv[1]
-    mode = sys.argv[2]
+    mode = 'variable'
+    style = sys.argv[2]
     problemList = []
     str_to_num = { 'two':'2', 'three':'3', 'four':'4', 'five':'5', 'six':'6', 'seven':'7', 'eight':'8', 'nine':'9', 'ten':'10', 'once':'1', 'twice':'2', 'half':'0.5' }
     input_files = ['math23k_train.json', 'math23k_test.json']
+
+    string = '广场 新种 了 一批 花木 ， 其中 (5/16) 是 玫瑰 ， (3/8) 是 月季 ． 已知 月季 有 36 棵 ， 玫瑰 有 多少 棵 ？'
+    Normalize(string, 'variable')
 
     ID = 10000
     for input_file in input_files:
         data = load_raw_data(input_file)
         for question in data:
-            print('index: ',question['id'])
+            # print('index: ',question['id'])
             ID += 1
-
-            question['segmented_text'], quan_map = Normalize(question['segmented_text'], mode)
+            if style == 'word':
+                sentence, quan_map = Normalize(question['segmented_text'], mode)
+            elif style == 'character':
+                sentence = ' '.join(list(question['original_text']))
+                sentence = re.sub(r'([\d\.\,\/\)\()])\s(?=[\d\.\,\/\)])', r'\1', sentence)
+                print(sentence)
+                sentence, quan_map = Normalize(sentence, mode)
+            else:
+                print('Error Mode!')
+                exit(-1)
             eq = question['equation']
             nor_eq = Extract(eq, quan_map, mode)
-            problemList.append((question['id'], question['segmented_text'], nor_eq, question['ans'] ))
+            problemList.append((question['id'], sentence, nor_eq, question['ans'] ))
                    
-        print(problemList[:10])
+        # print(problemList[:10])
     with open(os.path.join(Dir, 'questions.json'), 'w') as json_file:
         json_file.write(json.dumps(createData(problemList), ensure_ascii=False, indent=2))
