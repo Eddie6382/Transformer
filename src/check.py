@@ -1,10 +1,13 @@
 import os
 import shutil
+import tensorflow as tf
+from config import *
 
+global config
 def checkpoint(isTrain = False):
   if isTrain:
-    shutil.rmtree(os.path.join(drive_root, "ADL Project")
-  checkpoint_dir = os.path.join(drive_root, "ADL Project/checkpoints")
+    shutil.rmtree(os.path.join(config.drive_root, "ADL Project"))
+  checkpoint_dir = os.path.join(config.drive_root, "ADL Project/checkpoints")
   checkpoint_dir = os.path.join(checkpoint_dir, "training_checkpoints/akshata_transfomer")
 
   print("Checkpoints directory is", checkpoint_dir)

@@ -25,7 +25,7 @@ nlp = spacy.load("en_core_web_sm")
 smoothie = SmoothingFunction()
 from nltk.translate.bleu_score import corpus_bleu
 
-import config as *
+from config import *
 
 if __name__ == '__main__':
 	if len(sys.argv) != 2:
