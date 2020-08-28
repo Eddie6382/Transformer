@@ -64,7 +64,7 @@ def Normalize(question, mode):
 
         # substitute the question sentence
         for quan, num in quan_map.items():
-            question = re.sub(rf'(?<![\d\.N]){num}(?!(\d|\.\d+))', quan, question)
+            question = re.sub(rf'(?<!([\d\.N]|\/)){num}(?!(\d|\.\d+|\/))', quan, question)
         # print(question)
         return question, quan_map
 
@@ -107,8 +107,8 @@ if __name__ == '__main__':
     str_to_num = { 'two':'2', 'three':'3', 'four':'4', 'five':'5', 'six':'6', 'seven':'7', 'eight':'8', 'nine':'9', 'ten':'10', 'once':'1', 'twice':'2', 'half':'0.5' }
     input_files = ['math23k_train.json', 'math23k_test.json']
 
-    string = '广场 新种 了 一批 花木 ， 其中 (5/16) 是 玫瑰 ， (3/8) 是 月季 ． 已知 月季 有 36 棵 ， 玫瑰 有 多少 棵 ？'
-    Normalize(string, 'variable')
+    string = '甲 乙丙 3 人 共同 加工 一批 零件 ， 甲 加工 了 总数 的 40% ， 乙 加工 了 总数 的 (3/8) 还 多 26 个 ， 丙 加工 了 剩下 的 64 个 ． 这 批 零件 一共 有 多少 个 ？'
+    print(Normalize(string, 'variable'))
 
     ID = 10000
     for input_file in input_files:
@@ -121,7 +121,7 @@ if __name__ == '__main__':
             elif style == 'character':
                 sentence = ' '.join(list(question['original_text']))
                 sentence = re.sub(r'([\d\.\,\/\)\()])\s(?=[\d\.\,\/\)])', r'\1', sentence)
-                print(sentence)
+                # print(sentence)
                 sentence, quan_map = Normalize(sentence, mode)
             else:
                 print('Error Mode!')
@@ -130,6 +130,6 @@ if __name__ == '__main__':
             nor_eq = Extract(eq, quan_map, mode)
             problemList.append((question['id'], sentence, nor_eq, question['ans'] ))
                    
-        # print(problemList[:10])
+        print(problemList[:10])
     with open(os.path.join(Dir, 'questions.json'), 'w') as json_file:
         json_file.write(json.dumps(createData(problemList), ensure_ascii=False, indent=2))
